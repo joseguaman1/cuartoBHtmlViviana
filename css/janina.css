@@ -1,0 +1,61 @@
+body {
+    width: 85%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+
+}
+
+.text_h1 {
+    color: #AC4545;
+    text-shadow: 1px 3px 0 #969696, 1px 13px 5px #aba8a8;
+    text-align: center;
+    animation: text_h1 0.95s linear both;
+}
+#principal {
+    margin-top: 10px;
+    border: 1px buttonface solid;
+    padding: 20px;
+    border-radius: 10px;                
+    box-shadow: 11px 15px 4px 0px rgba(0,0,0,0.41);
+
+}
+
+@-webkit-keyframes text_h1 {
+    0% {
+        -webkit-transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+        transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+    }
+    50% {
+        -webkit-transform: scale(2) rotate3d(-1, 1, 0, 180deg);
+        transform: scale(2) rotate3d(-1, 1, 0, 180deg);
+    }
+    100% {
+        -webkit-transform: scale(1) rotate3d(-1, 1, 0, 360deg);
+        transform: scale(1) rotate3d(-1, 1, 0, 360deg);
+    }
+}
+@keyframes text_h1 {
+    0% {
+        -webkit-transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+        transform: scale(1) rotate3d(-1, 1, 0, 0deg);
+    }
+    50% {
+        -webkit-transform: scale(2) rotate3d(-1, 1, 0, 180deg);
+        transform: scale(2) rotate3d(-1, 1, 0, 180deg);
+    }
+    100% {
+        -webkit-transform: scale(1) rotate3d(-1, 1, 0, 360deg);
+        transform: scale(1) rotate3d(-1, 1, 0, 360deg);
+    }
+}
+
+footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    background-color: #efefef;
+    text-align: center;
+}
