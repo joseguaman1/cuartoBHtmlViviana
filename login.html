@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+        <script language="javascript" type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+        <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/localization/messages_es.js"></script>
+        <script src="js/janina.js"></script>
+    </head>
+    <body>
+        <script>
+            function validacion() {
+                $("#formulario").validate({
+                    rules: {
+                        correo: {
+                            required: true,
+                            email: true
+                        },
+                        clave: {
+                            required: true
+                        }
+                    },
+                    submitHandler: function (form) {
+                        iniciar_sesion();
+                    }
+                });
+            }
+            
+            $(document).ready(function () {               
+                verificarInicioSesion();
+                validacion();
+            });
+            
+            function iniciar_sesion() {
+                var peticion = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">';
+                peticion += '<Body>';
+                peticion += '<iniciar_sesion xmlns="urn:server">';
+                peticion += '<usuario>'+$("#exampleInputEmail1").val()+'</usuario>';
+                peticion += '<clave>'+$("#exampleInputPassword1").val()+'</clave>';                
+                peticion += '</iniciar_sesion>';
+                peticion += '</Body>';
+                peticion += '</Envelope>';
+                $.ajax({
+                    url: URL_SOAP,
+                    data: peticion,
+                    type: 'POST',
+                    dataType: 'xml',
+                    contentType: 'text/xml',
+                    success: function (data, textStatus, jqXHR) {
+                        if(jqXHR.status == '200') {
+                            var xml = jqXHR.responseXML;
+                            var xmlChange = $.parseXML(xml);
+                            var external = $(xml).text(xmlChange).find("external_id").text();
+                            var token = $(xml).text(xmlChange).find("token").text();
+                            var persona = $(xml).text(xmlChange).find("persona").text();
+                            localStorage["token"] = token;
+                            localStorage["user"] = persona;
+                            localStorage["external"] = external;
+                            location.href = "principal.html";
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR.responseText);
+                        manejoErrores(jqXHR.responseText);
+                    }
+                });
+            }
+        </script>
+        <div class="container">
+
+            <div class="row align-items-center" style="margin-top: 80px;">
+                <div class="col"></div>
+                <div class="col card">
+                    <div class="card-header bg-primary ">
+                        INICIO DE SESION VIVIANA
+                    </div>
+                    <div class="card-body">
+                        <form id="formulario">
+                            <div id="error"></div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Correo electronico</label>
+                                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Ingrese el correo" name="correo">
+                                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Clave</label>
+                                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Ingrese su clave" name="clave">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Inicio de sesion</button>                        
+                            <a href="registro.html" class="btn btn-link">Registrate!</a>                        
+                        </form>
+
+                    </div>
+                </div>
+                <div class="col"></div>
+            </div>
+
+        </div>
+
+    </body>
+</html>

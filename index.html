@@ -10,6 +10,18 @@ and open the template in the editor.
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="css/janina.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <script>
+            $(document).ready(function (){
+                $("input:text").blur(function (){
+                    var input = $(this);
+                    
+                    input.css("color", "orange");
+                    //alert($(this));
+                    //alert(this);
+                });
+            });
+        </script>
     </head>
     <body>
         <header>
@@ -28,11 +40,13 @@ and open the template in the editor.
         <div id="principal">
             <h1>Pagina de ejemplo</h1>
             <section>
+                <script src="js/janina.js"></script>
                 <form>
-                    <input/>
-                    <input type="color"/>
+                    <input onfocus="cambiarColor(this)"/>
+                    <input id="txt" onfocus="cambiarColor(this)"/>
+                    <input type="color" onchange="cambiarColorInput(this)"/>
                     <input type="file"/>
-                    <input type="date"/>
+                    <input type="date" id="fecha" onchange="calcularEdad()"/>
                 </form>
                 <audio controls src="music/A_flor_de_piel.mp3"/>
             </section>

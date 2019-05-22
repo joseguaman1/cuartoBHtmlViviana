@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <script src="js/janina.js"></script>
+        <script language="javascript" type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+        <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/localization/messages_es.js"></script>
+        <script>
+            $(document).ready(function () {
+                verificarNoInicioSesion();
+                var user = '<label style="color: #9911FF" class="nav-link">Bienvenido ' + localStorage["user"] + '</label>';
+                $("#user").html(user);
+                $("#cerrar").click(function () {
+                    cerrar_sesion();
+                });
+                cargarPacientes();
+                validar();
+                $("#fecha").change(function () {
+                    var edad = calcularEdad($("#fecha").val());
+                    $("#edad").val(edad);
+                });
+            });
+
+            function validar() {
+                $.validator.addMethod("soloLetras", function (value, element) {
+                    return this.optional(element) || /^[a-z\s]+$/i.test(value);
+                }, "Solo letras");
+
+                $.validator.addMethod("cedula", function (value, element) {
+                    return this.optional(element) || validarCedula(value);
+                }, "Cedula no valida");                
+
+                $("#formulario").validate({
+                    errorElement: 'div',
+                    errorClass: 'help-block',
+                    ignore: "",
+                    rules: {
+                        apellidos: {
+                            required: true,
+                            minlength: 3,
+                            maxlength: 50,
+                            soloLetras: true
+                        },
+                        cedula: {
+                            required: true,
+                            minlength: 10,
+                            maxlength: 10,
+                            number: true,
+                            cedula: true
+                        }
+
+                    },
+                    submitHandler: function (form) {
+                        //form.submit();
+                        guardar();                   
+                        
+                    }
+                });
+            }
+            function guardar() {
+                //$('#exampleModalScrollable').modal('hide');
+                var accion = "/guardar_paciente";
+                var external = $("#external").val();
+                if(external != "0") {
+                    accion = "/modificar_paciente/"+external;
+                }
+                
+                var data = {    
+                    "apellidos":$("#apellidos").val(),
+                    "nombres":$("#nombres").val(),
+                    "fecha_nac":$("#fecha").val(),
+                    "direccion":$("#dir").val(),
+                    "genero":$("#genero").val(),
+                    "edad":$("#edad").val(),
+                    "celular":$("#celular").val(),
+                    "habitos":$("#habitos").val(),
+                    "enfermedades":$("#enf").val(),
+                    "enfermedades_hederitarias":$("#enf_h").val(),
+                    "cedula":$("#cedula").val(),
+                    "telefono":$("#fono").val()
+                };
+                var dataEnv = JSON.stringify(data);
+                console.log(dataEnv);
+                console.log(URL_RESTFUL+accion);
+                $.ajax({
+                    url: URL_RESTFUL+accion,
+                    data: dataEnv,
+                    type: 'POST',
+                    headers: {"api-token":localStorage["token"]},
+                    dataType: 'json',
+                    success: function (data, textStatus, jqXHR) {
+                        console.log(data);
+                        //alert("ggh");
+                        if(data.codigo && data.codigo == "200") {
+                            $("#exampleModalScrollable .close").click();
+                            cargar_pacientes();
+                        } else {
+                          //  alert("casa");
+                            manejoErroresJson(data.message, data.codigo);
+                        }
+                    }, error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR);
+                    }
+                });
+                
+                //console.log(dataEnv);
+                //alert("d");
+                //location.href="principal.html";
+            }
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand" href="#">Menu</a>
+
+                <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+                    <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Link</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="cerrar" href="#" tabindex="-1" aria-disabled="true">Cerrar sesion</a>
+                        </li>
+                        <li class="nav-item" id="user">
+
+                        </li>
+                    </ul>
+                    <!--<form class="form-inline my-2 my-lg-0">
+                        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                    </form>-->
+                </div>
+            </nav>
+            <!-- PARA GUARDAR PACIENTES -->            
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModalScrollable" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalScrollableTitle">Registro de pacientes</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="error"></div>
+                            <form id="formulario">
+                                <input type="hidden" value="0" id="external" name="external"/>
+                                <ul class="nav nav-tabs">
+                                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#dp">Datos Personales</a></li>
+                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#h">Historial</a></li>                                    
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="dp">
+                                        <div class="form-group">
+                                            <label for="cedula">Cedula</label>
+                                            <input type="text" class="form-control" id="cedula" placeholder="cedula" name="cedula">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="apellidos">Apellidos</label>
+                                            <input type="text" class="form-control" id="apellidos" placeholder="apellidos" name="apellidos">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="nombres">Nombres</label>
+                                            <input type="text" class="form-control" id="nombres" placeholder="nombres" name="nombres">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fecha">Fecha de nacimiento</label>
+                                            <input type="date" class="form-control" id="fecha"  name="fecha">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="genero">Genero</label>
+                                            <select id="genero" name="genero" class="form-control">
+                                                <option value="M">Masculino</option>
+                                                <option value="F">Femenino</option>
+                                                <option value="N">No deifne</option>
+                                            </select>
+
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="edad">Edad</label>
+                                            <input type="text" class="form-control" id="edad" placeholder="edad" name="edad" readonly/>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="dir">Direccion</label>
+                                            <textarea id="dir" name="dir" class="form-control"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="celular">Celular</label>
+                                            <input type="text" class="form-control" id="celular" placeholder="celular" name="celular">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fono">Telefono</label>
+                                            <input type="text" class="form-control" id="fono" placeholder="Telefono" name="fono">
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="h">
+                                        <div class="form-group">
+                                            <label for="habitos">Habitos</label>
+                                            <textarea id="habitos" name="habitos" class="form-control"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="enf">Enfermedades</label>
+                                            <textarea id="enf" name="enf" class="form-control"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="enf_h">Enfermedades hederitarias</label>
+                                            <textarea id="enf_h" name="enf_h" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                                    <button type="submit" class="btn btn-primary">GUARDAR</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- FIN GUARDAR PACIENTES -->
+            <div class="card">
+                <div class="card-header bg-success">
+                    Listado de pacientes
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <a href="#" class="btn btn-success" data-toggle="modal" data-target="#exampleModalScrollable">NUEVO</a>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control"/>
+                        <a href="#" class="btn btn-success">BUSCAR</a>
+                    </div>
+                    <div class="form-group">
+                        <div id="error"></div>
+                        <table id="tabla" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nro</th>
+                                    <th>Cedula</th>
+                                    <th>Paciente</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>

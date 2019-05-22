@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Registro</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+        <script src="js/utilidades.js"></script>
+        <script language="javascript" type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+        <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/localization/messages_es.js"></script>
+        <script src="js/janina.js"></script>
+        <style>
+            label.error { float: none; color: red; padding-left: .5em; vertical-align: middle; font-size: 12px; }
+        </style>
+        <script>
+            function validacion() {
+                $.validator.addMethod("soloLetras", function (value, element) {
+                    return this.optional(element) || /^[a-z\s]+$/i.test(value);
+                }, "Solo letras");
+
+                $.validator.addMethod("registro", function (value, element) {
+                    return this.optional(element) || /^[N]-[0-9]{4}-[R]-[0-9]{3}$/.test(value);
+                }, "Ingrese un registro valido");
+
+                $.validator.addMethod("janina", function (value, element) {
+                    return this.optional(element) || validarCedula(value);
+                }, "Janina dice: Cedula no valida");
+
+                $("#formulario").validate({
+                    rules: {
+                        cedula: {
+                            required: true,
+                            minlength: 10,
+                            maxlength: 10,
+                            number: true,
+                            janina: true
+                        },
+                        txtapellido: {
+                            required: true,
+                            minlength: 3,
+                            maxlength: 50,
+                            soloLetras: true
+                        },
+                        registro: {
+                            required: true,
+                            registro: true
+                        }
+                    },
+                    submitHandler: function (form) {
+                        //form.submit();                    
+                        guardar();
+                    }
+                });
+            }
+
+
+            $(document).ready(function () {
+                cargarEspecialidades();
+                validacion();
+
+            });
+
+            function guardar() {
+                var peticion = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">';
+                peticion += '<Body>';
+                peticion += '<registro_medico xmlns="urn:server">';
+                peticion += '<cedula>'+$("#cedula").val()+'</cedula>';
+                peticion += '<apellidos>'+$("#apellido").val()+'</apellidos>';
+                peticion += '<nombres>'+$("#nombre").val()+'</nombres>';
+                peticion += '<especialidad>'+$("#especialidad").val()+'</especialidad>';
+                peticion += '<correo>'+$("#correo").val()+'</correo>';
+                peticion += '<nro_reg>'+$("#registro").val()+'</nro_reg>';
+                peticion += '<clave>'+$("#clave").val()+'</clave>';
+                peticion += '</registro_medico>';
+                peticion += '</Body>';
+                peticion += '</Envelope>';
+                $.ajax({
+                    url: URL_SOAP,
+                    data: peticion,
+                    type: 'POST',
+                    dataType: 'xml',
+                    contentType: 'text/xml',
+                    success: function (data, textStatus, jqXHR) {
+                        if(jqXHR.status == '200') {
+                            alert("Se ha registrado su cuenta, por favor inicie sesion!");
+                            location.href="login.html";
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR.responseText);
+                        manejoErrores(jqXHR.responseText);
+                    }
+                });
+            }
+        </script>
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="row align-items-center" style="margin-top: 80px;">
+                <div class="col"></div>
+                <div class="col card">
+                    <div class="card-header bg-primary ">
+                        REGISTRO DE MEDICOS
+                    </div>
+                    <div class="card-body">
+                        <form id="formulario">
+                            <div id="error"></div>
+                            <div class="form-group">
+                                <label for="cedula">Cedula</label>
+                                <input type="text" class="form-control" id="cedula" aria-describedby="cedulaHelp" placeholder="Ingrese cedula" name="cedula">
+                                <small id="cedulaHelp" class="form-text text-muted">Falta cedula.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="apellido">Apellido</label>
+                                <input type="text" class="form-control" id="apellido" aria-describedby="apellidoHelp" placeholder="Ingrese apellido" name="txtapellido">
+                                <small id="apellidoHelp" class="form-text text-muted">Falta apellido.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="apellido">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" aria-describedby="nombreHelp" placeholder="Ingrese nombre">
+                                <small id="nombreHelp" class="form-text text-muted">Falta apellido.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="especialidad">Especialidad</label>
+                                <select id="especialidad" class="form-control" name="especialidad">                                
+                                </select>
+                                <small id="especialidadHelp" class="form-text text-muted">Falta apellido.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="registro">Registro</label>
+                                <input type="text" class="form-control" id="registro" aria-describedby="registroHelp" placeholder="Ingrese registro" name="registro">
+                                <small id="registroHelp" class="form-text text-muted">Falta registro.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="correo">Correo electronico</label>
+                                <input type="email" class="form-control" id="correo" aria-describedby="correoHelp" placeholder="Ingrese el correo" name="correo">
+                                <small id="correoHelp" class="form-text text-muted">Correo.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="clave">Clave</label>
+                                <input type="password" class="form-control" id="clave" placeholder="Ingrese su clave" name="clave">
+                            </div>
+
+                            <button id="boton" type="submit" class="btn btn-primary">GUARDAR</button>                        
+                            <a href="login.html" class="btn btn-link">Volver!</a>                        
+                        </form>
+
+                    </div>
+                </div>
+                <div class="col"></div>
+            </div>
+
+        </div>
+    </body>
+</html>
